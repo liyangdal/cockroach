@@ -21,6 +21,7 @@ option go_package = "proto";
 
 import "gogoproto/gogo.proto";
 import "cockroach/proto/api.proto";
+import "cockroach/proto/data.proto";
 import "cockroach/proto/errors.proto";
 
 option (gogoproto.sizer_all) = true;
@@ -104,3 +105,220 @@ message CreateTableResponse {
 // service SchemaService {
 //   rpc CreateTable (CreateTableRequest) returns (CreateTableResponse);
 // }
+
+// TableRequestHeader is supplied with every structured API request.
+message TableRequestHeader {
+  // Timestamp specifies time at which read or writes should be
+  // performed. If the timestamp is set to zero value, its value
+  // is initialized to the wall time of the receiving gateway node.
+  optional Timestamp timestamp = 1 [(gogoproto.nullable) = false];
+  // CmdID is optionally specified for request idempotence
+  // (i.e. replay protection).
+  optional ClientCmdID cmd_id = 2 [(gogoproto.nullable) = false, (gogoproto.customname) = "CmdID"];
+  // User is the originating user. Used to lookup priority when
+  // scheduling queued operations at target node.
+  optional string user = 5 [(gogoproto.nullable) = false];
+  // UserPriority specifies priority multiple for non-transactional
+  // commands. This value should be a positive integer [1, 2^31-1).
+  // It's properly viewed as a multiple for how likely this
+  // transaction will be to prevail if a write conflict occurs.
+  // Commands with UserPriority=100 will be 100x less likely to be
+  // aborted as conflicting transactions or non-transactional commands
+  // with UserPriority=1. This value is ignored if Txn is
+  // specified. If neither this value nor Txn is specified, the value
+  // defaults to 1.
+  optional int32 user_priority = 8 [default = 1];
+  // Txn is set non-nil if a transaction is underway. To start a txn,
+  // the first request should set this field to non-nil with name and
+  // isolation level set as desired. The response will contain the
+  // fully-initialized transaction with txn ID, priority, initial
+  // timestamp, and maximum timestamp. The transaction returned in a
+  // response is feed to the next request.
+  optional Transaction txn = 9;
+  // ReadConsistency specifies the consistency for read
+  // operations. The default is CONSISTENT. This value is ignored for
+  // write operations.
+  optional ReadConsistencyType read_consistency = 10 [(gogoproto.nullable) = false];
+}
+
+// TableResponseHeader is returned with every structured API response.
+message TableResponseHeader {
+  // Error is non-nil if an error occurred.
+  optional Error error = 1;
+  // Timestamp specifies time at which read or write actually was
+  // performed. In the case of both reads and writes, if the timestamp
+  // supplied to the request was 0, the wall time of the node
+  // servicing the request will be set here. Additionally, in the case
+  // of writes, this value may be increased from the timestamp passed
+  // with the RequestHeader if the key being written was either read
+  // or written more recently.
+  //
+  // TODO(vivek): Is this only relevant in the non-transactional case?
+  optional Timestamp timestamp = 2 [(gogoproto.nullable) = false];
+  // Transaction is non-nil if the request specified a non-nil
+  // transaction. The transaction timestamp and/or priority may have
+  // been updated, depending on the outcome of the request.
+  optional Transaction txn = 3;
+}
+
+// A TableKey represents a key into a table index.
+message TableKey {
+  optional string table_name = 1;
+  // A column key component. Multiple ColumnKeys together form a key.
+  message ColumnKey {
+    optional string column_name = 1;
+    optional bytes key = 2; 
+  }
+  // The different key components from each column.
+  repeated ColumnKey columns = 2;
+}
+
+// A TableRow represents a set of column values within a table row. 
+message TableRow {
+  message Cell {
+    optional bytes column_name = 1;
+    optional Value value = 2;
+  }
+  repeated Cell cells = 1;
+}
+
+// A GetTableRequest is used to read a table row.
+message GetTableRequest {
+  optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  optional TableKey key = 2 [(gogoproto.nullable) = false];
+}
+
+// A GetTableResponse returns a row.
+// If the key doesn't exist, it returns an empty row.
+message GetTableResponse {
+  optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  optional TableRow row = 2 [(gogoproto.nullable) = false];
+}
+
+// A PutTableRequest inserts/updates a row in the table. To write
+// an empty value in a cell, a cell with a value are still specified, but both
+// Bytes and Integer in the Value are set to nil.
+message PutTableRequest {
+  optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  optional TableKey key = 2 [(gogoproto.nullable) = false];
+  optional TableRow row = 3 [(gogoproto.nullable) = false];
+}
+
+// A PutTableResponse is the response.
+message PutTableResponse {
+  optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// A ConditionalPutTableRequest.
+//
+// - Returns true and sets row if exp_row equals existing row.
+// - If key doesn't exist and exp_row is empty, sets row.
+// - If key exists and exp_row is empty, sets row.
+// - Otherwise, returns error and the actual value of the row in the response.
+message ConditionalPutTableRequest {
+  optional RequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  optional TableKey key = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  // The values to put.
+  optional TableRow row = 3 [(gogoproto.nullable) = false];
+  optional TableRow exp_row = 4[(gogoproto.nullable) = false];
+}
+
+// A ConditionalPutTableResponse is the return value from the
+// ConditionalPut request.
+message ConditionalPutTableResponse {
+  optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  optional TableRow row = 2[(gogoproto.nullable) = false];
+}
+
+// A DeleteRowTableRequest.
+message DeleteRowTableRequest {
+  optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  optional TableKey key = 2 [(gogoproto.nullable) = false];
+}
+
+// A DeleteRowTableResponse.
+message DeleteRowTableResponse {
+  optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// A DeleteRowRangeTableRequest deletes the specified rows.
+message DeleteRowRangeTableRequest {
+  optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  // Delete *all* entries between Key (inclusive) and EndKey
+  // (exclusive). Must be > 0
+  optional string index = 2 [(gogoproto.nullable) = false];
+  optional TableKey key = 3 [(gogoproto.nullable) = false];
+  optional TableKey end_key = 4 [(gogoproto.nullable) = false];
+  optional int64 max_entries_to_delete = 5 [(gogoproto.nullable) = false];
+}
+
+// A DeleteRowRangeTableResponse is the response.
+message DeleteRowRangeTableResponse {
+  optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  // Number of entries deleted.
+  optional int64 num_deleted = 2 [(gogoproto.nullable) = false];
+}
+
+// A ScanTableRequest. It specifies the start and end keys for the scan
+// and the maximum number of results.
+message ScanTableRequest {
+  optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  // Must be > 0.
+  optional string index = 2 [(gogoproto.nullable) = false];
+  optional TableKey key = 3 [(gogoproto.nullable) = false];
+  optional TableKey end_key = 4 [(gogoproto.nullable) = false];
+  optional int64 max_results = 5 [(gogoproto.nullable) = false];
+}
+
+// A ScanTableResponse is the response.
+message ScanTableResponse {
+  optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  // Empty in case of error.
+  repeated TableRow rows = 2;
+}
+
+// A TableRequestUnion contains exactly one of the optional requests.
+message TableRequestUnion {
+  // option (gogoproto.onlyone) = true;
+  oneof value {
+    GetTableRequest get = 2;
+    PutTableRequest put = 3;
+    ConditionalPutTableRequest conditional_put = 4;
+    DeleteRowTableRequest delete = 6;
+    DeleteRowRangeTableRequest delete_range = 7;
+    ScanTableRequest scan = 8;
+    EndTransactionRequest end_transaction = 9;
+  }
+}
+
+// A TableResponseUnion contains exactly one of the optional responses.
+message TableResponseUnion {
+  // option (gogoproto.onlyone) = true;
+  oneof value {
+    GetTableResponse get = 2;
+    PutTableResponse put = 3;
+    ConditionalPutTableResponse conditional_put = 4;
+    DeleteRowTableResponse delete = 6;
+    DeleteRowRangeTableResponse delete_range = 7;
+    ScanTableResponse scan = 8;
+    EndTransactionResponse end_transaction = 9;
+  }
+}
+
+// A BatchTableRequest contains one or more requests to be executed in
+// parallel, or if applicable (based on write-only commands and
+// range-locality), as a single update.
+//
+message BatchTableRequest {
+  optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  repeated TableRequestUnion requests = 2;
+}
+
+// A BatchTableResponse contains one or more responses, one per request
+// corresponding to the requests in the matching BatchRequest. The
+// error in the response header is set to the first error from the
+// slice of responses, if applicable.
+message BatchTableResponse {
+  optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  repeated TableResponseUnion responses = 2;
+}
