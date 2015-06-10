@@ -174,75 +174,79 @@ message TableKey {
 }
 
 // A TableRow represents a set of column values within a table row. 
+// When multiple rows are returned in a response (Scan), only the
+// the first row Cells contain column_names.
 message TableRow {
   message Cell {
-    optional bytes column_name = 1;
+    optional string column_name = 1;
     optional Value value = 2;
   }
   repeated Cell cells = 1;
 }
 
-// A GetTableRequest is used to read a table row.
-message GetTableRequest {
+// A GetTableRowRequest is used to read a table row.
+message GetTableRowRequest {
   optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   optional TableKey key = 2 [(gogoproto.nullable) = false];
+  // get specified columns from the row.
+  repeated string column_names = 3;
 }
 
-// A GetTableResponse returns a row.
+// A GetTableRowResponse returns a row.
 // If the key doesn't exist, it returns an empty row.
-message GetTableResponse {
+message GetTableRowResponse {
   optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   optional TableRow row = 2 [(gogoproto.nullable) = false];
 }
 
-// A PutTableRequest inserts/updates a row in the table. To write
-// an empty value in a cell, a cell with a value are still specified, but both
-// Bytes and Integer in the Value are set to nil.
-message PutTableRequest {
+// A PutTableRowRequest inserts/updates a row in the table. To write
+// an empty value in a cell specify an empty Bytes in the Value. To Delete
+// a cell, specify a cell with a column_name with no value.
+message PutTableRowRequest {
   optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   optional TableKey key = 2 [(gogoproto.nullable) = false];
   optional TableRow row = 3 [(gogoproto.nullable) = false];
 }
 
-// A PutTableResponse is the response.
-message PutTableResponse {
+// A PutTableRowResponse is the response.
+message PutTableRowResponse {
   optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
-// A ConditionalPutTableRequest.
+// A ConditionalPutTableRowRequest.
 //
 // - Returns true and sets row if exp_row equals existing row.
 // - If key doesn't exist and exp_row is empty, sets row.
 // - If key exists and exp_row is empty, sets row.
 // - Otherwise, returns error and the actual value of the row in the response.
-message ConditionalPutTableRequest {
-  optional RequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+message ConditionalPutTableRowRequest {
+  optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   optional TableKey key = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   // The values to put.
   optional TableRow row = 3 [(gogoproto.nullable) = false];
   optional TableRow exp_row = 4[(gogoproto.nullable) = false];
 }
 
-// A ConditionalPutTableResponse is the return value from the
+// A ConditionalPutTableRowResponse is the return value from the
 // ConditionalPut request.
-message ConditionalPutTableResponse {
+message ConditionalPutTableRowResponse {
   optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   optional TableRow row = 2[(gogoproto.nullable) = false];
 }
 
-// A DeleteRowTableRequest.
-message DeleteRowTableRequest {
+// A DeleteTableRowRequest deletes the entire row.
+message DeleteTableRowRequest {
   optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   optional TableKey key = 2 [(gogoproto.nullable) = false];
 }
 
-// A DeleteRowTableResponse.
-message DeleteRowTableResponse {
+// A DeleteTableRowResponse.
+message DeleteTableRowResponse {
   optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
-// A DeleteRowRangeTableRequest deletes the specified rows.
-message DeleteRowRangeTableRequest {
+// A DeleteTableRowRangeRequest deletes the specified rows.
+message DeleteTableRowRangeRequest {
   optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   // Delete *all* entries between Key (inclusive) and EndKey
   // (exclusive). Must be > 0
@@ -252,8 +256,8 @@ message DeleteRowRangeTableRequest {
   optional int64 max_entries_to_delete = 5 [(gogoproto.nullable) = false];
 }
 
-// A DeleteRowRangeTableResponse is the response.
-message DeleteRowRangeTableResponse {
+// A DeleteTableRowRangeResponse is the response.
+message DeleteTableRowRangeResponse {
   optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
   // Number of entries deleted.
   optional int64 num_deleted = 2 [(gogoproto.nullable) = false];
@@ -268,6 +272,8 @@ message ScanTableRequest {
   optional TableKey key = 3 [(gogoproto.nullable) = false];
   optional TableKey end_key = 4 [(gogoproto.nullable) = false];
   optional int64 max_results = 5 [(gogoproto.nullable) = false];
+  // get specified columns from the rows.
+  repeated string column_names = 6;
 }
 
 // A ScanTableResponse is the response.
@@ -279,13 +285,13 @@ message ScanTableResponse {
 
 // A TableRequestUnion contains exactly one of the optional requests.
 message TableRequestUnion {
-  // option (gogoproto.onlyone) = true;
+  option (gogoproto.onlyone) = true;
   oneof value {
-    GetTableRequest get = 2;
-    PutTableRequest put = 3;
-    ConditionalPutTableRequest conditional_put = 4;
-    DeleteRowTableRequest delete = 6;
-    DeleteRowRangeTableRequest delete_range = 7;
+    GetTableRowRequest get = 2;
+    PutTableRowRequest put = 3;
+    ConditionalPutTableRowRequest conditional_put = 4;
+    DeleteTableRowRequest delete = 6;
+    DeleteTableRowRangeRequest delete_range = 7;
     ScanTableRequest scan = 8;
     EndTransactionRequest end_transaction = 9;
   }
@@ -293,13 +299,13 @@ message TableRequestUnion {
 
 // A TableResponseUnion contains exactly one of the optional responses.
 message TableResponseUnion {
-  // option (gogoproto.onlyone) = true;
+  option (gogoproto.onlyone) = true;
   oneof value {
-    GetTableResponse get = 2;
-    PutTableResponse put = 3;
-    ConditionalPutTableResponse conditional_put = 4;
-    DeleteRowTableResponse delete = 6;
-    DeleteRowRangeTableResponse delete_range = 7;
+    GetTableRowResponse get = 2;
+    PutTableRowResponse put = 3;
+    ConditionalPutTableRowResponse conditional_put = 4;
+    DeleteTableRowResponse delete = 6;
+    DeleteTableRowRangeResponse delete_range = 7;
     ScanTableResponse scan = 8;
     EndTransactionResponse end_transaction = 9;
   }
