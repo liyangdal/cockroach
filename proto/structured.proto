@@ -283,40 +283,25 @@ message ScanTableResponse {
   repeated TableRow rows = 2;
 }
 
-// A TableRequestUnion contains exactly one of the optional requests.
-message TableRequestUnion {
-  option (gogoproto.onlyone) = true;
-  oneof value {
-    GetTableRowRequest get = 2;
-    PutTableRowRequest put = 3;
-    ConditionalPutTableRowRequest conditional_put = 4;
-    DeleteTableRowRequest delete = 6;
-    DeleteTableRowRangeRequest delete_range = 7;
-    ScanTableRequest scan = 8;
-    EndTransactionRequest end_transaction = 9;
-  }
-}
-
-// A TableResponseUnion contains exactly one of the optional responses.
-message TableResponseUnion {
-  option (gogoproto.onlyone) = true;
-  oneof value {
-    GetTableRowResponse get = 2;
-    PutTableRowResponse put = 3;
-    ConditionalPutTableRowResponse conditional_put = 4;
-    DeleteTableRowResponse delete = 6;
-    DeleteTableRowRangeResponse delete_range = 7;
-    ScanTableResponse scan = 8;
-    EndTransactionResponse end_transaction = 9;
-  }
-}
-
 // A BatchTableRequest contains one or more requests to be executed in
 // parallel, or if applicable (based on write-only commands and
 // range-locality), as a single update.
 //
 message BatchTableRequest {
   optional TableRequestHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  // A TableRequestUnion contains exactly one of the optional requests.
+  message TableRequestUnion {
+    option (gogoproto.onlyone) = true;
+    oneof value {
+      GetTableRowRequest get = 2;
+      PutTableRowRequest put = 3;
+      ConditionalPutTableRowRequest conditional_put = 4;
+      DeleteTableRowRequest delete = 6;
+      DeleteTableRowRangeRequest delete_range = 7;
+      ScanTableRequest scan = 8;
+      EndTransactionRequest end_transaction = 9;
+    }
+  }
   repeated TableRequestUnion requests = 2;
 }
 
@@ -326,5 +311,18 @@ message BatchTableRequest {
 // slice of responses, if applicable.
 message BatchTableResponse {
   optional TableResponseHeader header = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+  // A TableResponseUnion contains exactly one of the optional responses.
+  message TableResponseUnion {
+    option (gogoproto.onlyone) = true;
+    oneof value {
+      GetTableRowResponse get = 2;
+      PutTableRowResponse put = 3;
+      ConditionalPutTableRowResponse conditional_put = 4;
+      DeleteTableRowResponse delete = 6;
+      DeleteTableRowRangeResponse delete_range = 7;
+      ScanTableResponse scan = 8;
+      EndTransactionResponse end_transaction = 9;
+    }
+  }
   repeated TableResponseUnion responses = 2;
 }

@@ -820,8 +820,29 @@ func (m *ScanTableResponse) GetRows() []*TableRow {
 	return nil
 }
 
+// A BatchTableRequest contains one or more requests to be executed in
+// parallel, or if applicable (based on write-only commands and
+// range-locality), as a single update.
+//
+type BatchTableRequest struct {
+	TableRequestHeader `protobuf:"bytes,1,opt,name=header,embedded=header" json:"header"`
+	Requests           []*BatchTableRequest_TableRequestUnion `protobuf:"bytes,2,rep,name=requests" json:"requests,omitempty"`
+	XXX_unrecognized   []byte                                 `json:"-"`
+}
+
+func (m *BatchTableRequest) Reset()         { *m = BatchTableRequest{} }
+func (m *BatchTableRequest) String() string { return proto1.CompactTextString(m) }
+func (*BatchTableRequest) ProtoMessage()    {}
+
+func (m *BatchTableRequest) GetRequests() []*BatchTableRequest_TableRequestUnion {
+	if m != nil {
+		return m.Requests
+	}
+	return nil
+}
+
 // A TableRequestUnion contains exactly one of the optional requests.
-type TableRequestUnion struct {
+type BatchTableRequest_TableRequestUnion struct {
 	Get              *GetTableRowRequest            `protobuf:"bytes,2,opt,name=get" json:"get,omitempty"`
 	Put              *PutTableRowRequest            `protobuf:"bytes,3,opt,name=put" json:"put,omitempty"`
 	ConditionalPut   *ConditionalPutTableRowRequest `protobuf:"bytes,4,opt,name=conditional_put" json:"conditional_put,omitempty"`
@@ -832,141 +853,55 @@ type TableRequestUnion struct {
 	XXX_unrecognized []byte                         `json:"-"`
 }
 
-func (m *TableRequestUnion) Reset()         { *m = TableRequestUnion{} }
-func (m *TableRequestUnion) String() string { return proto1.CompactTextString(m) }
-func (*TableRequestUnion) ProtoMessage()    {}
+func (m *BatchTableRequest_TableRequestUnion) Reset()         { *m = BatchTableRequest_TableRequestUnion{} }
+func (m *BatchTableRequest_TableRequestUnion) String() string { return proto1.CompactTextString(m) }
+func (*BatchTableRequest_TableRequestUnion) ProtoMessage()    {}
 
-func (m *TableRequestUnion) GetGet() *GetTableRowRequest {
+func (m *BatchTableRequest_TableRequestUnion) GetGet() *GetTableRowRequest {
 	if m != nil {
 		return m.Get
 	}
 	return nil
 }
 
-func (m *TableRequestUnion) GetPut() *PutTableRowRequest {
+func (m *BatchTableRequest_TableRequestUnion) GetPut() *PutTableRowRequest {
 	if m != nil {
 		return m.Put
 	}
 	return nil
 }
 
-func (m *TableRequestUnion) GetConditionalPut() *ConditionalPutTableRowRequest {
+func (m *BatchTableRequest_TableRequestUnion) GetConditionalPut() *ConditionalPutTableRowRequest {
 	if m != nil {
 		return m.ConditionalPut
 	}
 	return nil
 }
 
-func (m *TableRequestUnion) GetDelete() *DeleteTableRowRequest {
+func (m *BatchTableRequest_TableRequestUnion) GetDelete() *DeleteTableRowRequest {
 	if m != nil {
 		return m.Delete
 	}
 	return nil
 }
 
-func (m *TableRequestUnion) GetDeleteRange() *DeleteTableRowRangeRequest {
+func (m *BatchTableRequest_TableRequestUnion) GetDeleteRange() *DeleteTableRowRangeRequest {
 	if m != nil {
 		return m.DeleteRange
 	}
 	return nil
 }
 
-func (m *TableRequestUnion) GetScan() *ScanTableRequest {
+func (m *BatchTableRequest_TableRequestUnion) GetScan() *ScanTableRequest {
 	if m != nil {
 		return m.Scan
 	}
 	return nil
 }
 
-func (m *TableRequestUnion) GetEndTransaction() *EndTransactionRequest {
+func (m *BatchTableRequest_TableRequestUnion) GetEndTransaction() *EndTransactionRequest {
 	if m != nil {
 		return m.EndTransaction
-	}
-	return nil
-}
-
-// A TableResponseUnion contains exactly one of the optional responses.
-type TableResponseUnion struct {
-	Get              *GetTableRowResponse            `protobuf:"bytes,2,opt,name=get" json:"get,omitempty"`
-	Put              *PutTableRowResponse            `protobuf:"bytes,3,opt,name=put" json:"put,omitempty"`
-	ConditionalPut   *ConditionalPutTableRowResponse `protobuf:"bytes,4,opt,name=conditional_put" json:"conditional_put,omitempty"`
-	Delete           *DeleteTableRowResponse         `protobuf:"bytes,6,opt,name=delete" json:"delete,omitempty"`
-	DeleteRange      *DeleteTableRowRangeResponse    `protobuf:"bytes,7,opt,name=delete_range" json:"delete_range,omitempty"`
-	Scan             *ScanTableResponse              `protobuf:"bytes,8,opt,name=scan" json:"scan,omitempty"`
-	EndTransaction   *EndTransactionResponse         `protobuf:"bytes,9,opt,name=end_transaction" json:"end_transaction,omitempty"`
-	XXX_unrecognized []byte                          `json:"-"`
-}
-
-func (m *TableResponseUnion) Reset()         { *m = TableResponseUnion{} }
-func (m *TableResponseUnion) String() string { return proto1.CompactTextString(m) }
-func (*TableResponseUnion) ProtoMessage()    {}
-
-func (m *TableResponseUnion) GetGet() *GetTableRowResponse {
-	if m != nil {
-		return m.Get
-	}
-	return nil
-}
-
-func (m *TableResponseUnion) GetPut() *PutTableRowResponse {
-	if m != nil {
-		return m.Put
-	}
-	return nil
-}
-
-func (m *TableResponseUnion) GetConditionalPut() *ConditionalPutTableRowResponse {
-	if m != nil {
-		return m.ConditionalPut
-	}
-	return nil
-}
-
-func (m *TableResponseUnion) GetDelete() *DeleteTableRowResponse {
-	if m != nil {
-		return m.Delete
-	}
-	return nil
-}
-
-func (m *TableResponseUnion) GetDeleteRange() *DeleteTableRowRangeResponse {
-	if m != nil {
-		return m.DeleteRange
-	}
-	return nil
-}
-
-func (m *TableResponseUnion) GetScan() *ScanTableResponse {
-	if m != nil {
-		return m.Scan
-	}
-	return nil
-}
-
-func (m *TableResponseUnion) GetEndTransaction() *EndTransactionResponse {
-	if m != nil {
-		return m.EndTransaction
-	}
-	return nil
-}
-
-// A BatchTableRequest contains one or more requests to be executed in
-// parallel, or if applicable (based on write-only commands and
-// range-locality), as a single update.
-//
-type BatchTableRequest struct {
-	TableRequestHeader `protobuf:"bytes,1,opt,name=header,embedded=header" json:"header"`
-	Requests           []*TableRequestUnion `protobuf:"bytes,2,rep,name=requests" json:"requests,omitempty"`
-	XXX_unrecognized   []byte               `json:"-"`
-}
-
-func (m *BatchTableRequest) Reset()         { *m = BatchTableRequest{} }
-func (m *BatchTableRequest) String() string { return proto1.CompactTextString(m) }
-func (*BatchTableRequest) ProtoMessage()    {}
-
-func (m *BatchTableRequest) GetRequests() []*TableRequestUnion {
-	if m != nil {
-		return m.Requests
 	}
 	return nil
 }
@@ -977,17 +912,82 @@ func (m *BatchTableRequest) GetRequests() []*TableRequestUnion {
 // slice of responses, if applicable.
 type BatchTableResponse struct {
 	TableResponseHeader `protobuf:"bytes,1,opt,name=header,embedded=header" json:"header"`
-	Responses           []*TableResponseUnion `protobuf:"bytes,2,rep,name=responses" json:"responses,omitempty"`
-	XXX_unrecognized    []byte                `json:"-"`
+	Responses           []*BatchTableResponse_TableResponseUnion `protobuf:"bytes,2,rep,name=responses" json:"responses,omitempty"`
+	XXX_unrecognized    []byte                                   `json:"-"`
 }
 
 func (m *BatchTableResponse) Reset()         { *m = BatchTableResponse{} }
 func (m *BatchTableResponse) String() string { return proto1.CompactTextString(m) }
 func (*BatchTableResponse) ProtoMessage()    {}
 
-func (m *BatchTableResponse) GetResponses() []*TableResponseUnion {
+func (m *BatchTableResponse) GetResponses() []*BatchTableResponse_TableResponseUnion {
 	if m != nil {
 		return m.Responses
+	}
+	return nil
+}
+
+// A TableResponseUnion contains exactly one of the optional responses.
+type BatchTableResponse_TableResponseUnion struct {
+	Get              *GetTableRowResponse            `protobuf:"bytes,2,opt,name=get" json:"get,omitempty"`
+	Put              *PutTableRowResponse            `protobuf:"bytes,3,opt,name=put" json:"put,omitempty"`
+	ConditionalPut   *ConditionalPutTableRowResponse `protobuf:"bytes,4,opt,name=conditional_put" json:"conditional_put,omitempty"`
+	Delete           *DeleteTableRowResponse         `protobuf:"bytes,6,opt,name=delete" json:"delete,omitempty"`
+	DeleteRange      *DeleteTableRowRangeResponse    `protobuf:"bytes,7,opt,name=delete_range" json:"delete_range,omitempty"`
+	Scan             *ScanTableResponse              `protobuf:"bytes,8,opt,name=scan" json:"scan,omitempty"`
+	EndTransaction   *EndTransactionResponse         `protobuf:"bytes,9,opt,name=end_transaction" json:"end_transaction,omitempty"`
+	XXX_unrecognized []byte                          `json:"-"`
+}
+
+func (m *BatchTableResponse_TableResponseUnion) Reset()         { *m = BatchTableResponse_TableResponseUnion{} }
+func (m *BatchTableResponse_TableResponseUnion) String() string { return proto1.CompactTextString(m) }
+func (*BatchTableResponse_TableResponseUnion) ProtoMessage()    {}
+
+func (m *BatchTableResponse_TableResponseUnion) GetGet() *GetTableRowResponse {
+	if m != nil {
+		return m.Get
+	}
+	return nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) GetPut() *PutTableRowResponse {
+	if m != nil {
+		return m.Put
+	}
+	return nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) GetConditionalPut() *ConditionalPutTableRowResponse {
+	if m != nil {
+		return m.ConditionalPut
+	}
+	return nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) GetDelete() *DeleteTableRowResponse {
+	if m != nil {
+		return m.Delete
+	}
+	return nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) GetDeleteRange() *DeleteTableRowRangeResponse {
+	if m != nil {
+		return m.DeleteRange
+	}
+	return nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) GetScan() *ScanTableResponse {
+	if m != nil {
+		return m.Scan
+	}
+	return nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) GetEndTransaction() *EndTransactionResponse {
+	if m != nil {
+		return m.EndTransaction
 	}
 	return nil
 }
@@ -3851,7 +3851,99 @@ func (m *ScanTableResponse) Unmarshal(data []byte) error {
 
 	return nil
 }
-func (m *TableRequestUnion) Unmarshal(data []byte) error {
+func (m *BatchTableRequest) Unmarshal(data []byte) error {
+	l := len(data)
+	index := 0
+	for index < l {
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if index >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[index]
+			index++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TableRequestHeader", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if index >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[index]
+				index++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			postIndex := index + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TableRequestHeader.Unmarshal(data[index:postIndex]); err != nil {
+				return err
+			}
+			index = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Requests", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if index >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[index]
+				index++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			postIndex := index + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Requests = append(m.Requests, &BatchTableRequest_TableRequestUnion{})
+			if err := m.Requests[len(m.Requests)-1].Unmarshal(data[index:postIndex]); err != nil {
+				return err
+			}
+			index = postIndex
+		default:
+			var sizeOfWire int
+			for {
+				sizeOfWire++
+				wire >>= 7
+				if wire == 0 {
+					break
+				}
+			}
+			index -= sizeOfWire
+			skippy, err := github_com_gogo_protobuf_proto.Skip(data[index:])
+			if err != nil {
+				return err
+			}
+			if (index + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, data[index:index+skippy]...)
+			index += skippy
+		}
+	}
+
+	return nil
+}
+func (m *BatchTableRequest_TableRequestUnion) Unmarshal(data []byte) error {
 	l := len(data)
 	index := 0
 	for index < l {
@@ -4083,7 +4175,99 @@ func (m *TableRequestUnion) Unmarshal(data []byte) error {
 
 	return nil
 }
-func (m *TableResponseUnion) Unmarshal(data []byte) error {
+func (m *BatchTableResponse) Unmarshal(data []byte) error {
+	l := len(data)
+	index := 0
+	for index < l {
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if index >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[index]
+			index++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TableResponseHeader", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if index >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[index]
+				index++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			postIndex := index + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TableResponseHeader.Unmarshal(data[index:postIndex]); err != nil {
+				return err
+			}
+			index = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Responses", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if index >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[index]
+				index++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			postIndex := index + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Responses = append(m.Responses, &BatchTableResponse_TableResponseUnion{})
+			if err := m.Responses[len(m.Responses)-1].Unmarshal(data[index:postIndex]); err != nil {
+				return err
+			}
+			index = postIndex
+		default:
+			var sizeOfWire int
+			for {
+				sizeOfWire++
+				wire >>= 7
+				if wire == 0 {
+					break
+				}
+			}
+			index -= sizeOfWire
+			skippy, err := github_com_gogo_protobuf_proto.Skip(data[index:])
+			if err != nil {
+				return err
+			}
+			if (index + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, data[index:index+skippy]...)
+			index += skippy
+		}
+	}
+
+	return nil
+}
+func (m *BatchTableResponse_TableResponseUnion) Unmarshal(data []byte) error {
 	l := len(data)
 	index := 0
 	for index < l {
@@ -4315,191 +4499,7 @@ func (m *TableResponseUnion) Unmarshal(data []byte) error {
 
 	return nil
 }
-func (m *BatchTableRequest) Unmarshal(data []byte) error {
-	l := len(data)
-	index := 0
-	for index < l {
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if index >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[index]
-			index++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TableRequestHeader", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if index >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[index]
-				index++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := index + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.TableRequestHeader.Unmarshal(data[index:postIndex]); err != nil {
-				return err
-			}
-			index = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Requests", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if index >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[index]
-				index++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := index + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Requests = append(m.Requests, &TableRequestUnion{})
-			if err := m.Requests[len(m.Requests)-1].Unmarshal(data[index:postIndex]); err != nil {
-				return err
-			}
-			index = postIndex
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			index -= sizeOfWire
-			skippy, err := github_com_gogo_protobuf_proto.Skip(data[index:])
-			if err != nil {
-				return err
-			}
-			if (index + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, data[index:index+skippy]...)
-			index += skippy
-		}
-	}
-
-	return nil
-}
-func (m *BatchTableResponse) Unmarshal(data []byte) error {
-	l := len(data)
-	index := 0
-	for index < l {
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if index >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[index]
-			index++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TableResponseHeader", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if index >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[index]
-				index++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := index + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.TableResponseHeader.Unmarshal(data[index:postIndex]); err != nil {
-				return err
-			}
-			index = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Responses", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if index >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[index]
-				index++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := index + msglen
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Responses = append(m.Responses, &TableResponseUnion{})
-			if err := m.Responses[len(m.Responses)-1].Unmarshal(data[index:postIndex]); err != nil {
-				return err
-			}
-			index = postIndex
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			index -= sizeOfWire
-			skippy, err := github_com_gogo_protobuf_proto.Skip(data[index:])
-			if err != nil {
-				return err
-			}
-			if (index + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, data[index:index+skippy]...)
-			index += skippy
-		}
-	}
-
-	return nil
-}
-func (this *TableRequestUnion) GetValue() interface{} {
+func (this *BatchTableRequest_TableRequestUnion) GetValue() interface{} {
 	if this.Get != nil {
 		return this.Get
 	}
@@ -4524,7 +4524,7 @@ func (this *TableRequestUnion) GetValue() interface{} {
 	return nil
 }
 
-func (this *TableRequestUnion) SetValue(value interface{}) bool {
+func (this *BatchTableRequest_TableRequestUnion) SetValue(value interface{}) bool {
 	switch vt := value.(type) {
 	case *GetTableRowRequest:
 		this.Get = vt
@@ -4545,7 +4545,7 @@ func (this *TableRequestUnion) SetValue(value interface{}) bool {
 	}
 	return true
 }
-func (this *TableResponseUnion) GetValue() interface{} {
+func (this *BatchTableResponse_TableResponseUnion) GetValue() interface{} {
 	if this.Get != nil {
 		return this.Get
 	}
@@ -4570,7 +4570,7 @@ func (this *TableResponseUnion) GetValue() interface{} {
 	return nil
 }
 
-func (this *TableResponseUnion) SetValue(value interface{}) bool {
+func (this *BatchTableResponse_TableResponseUnion) SetValue(value interface{}) bool {
 	switch vt := value.(type) {
 	case *GetTableRowResponse:
 		this.Get = vt
@@ -5039,80 +5039,6 @@ func (m *ScanTableResponse) Size() (n int) {
 	return n
 }
 
-func (m *TableRequestUnion) Size() (n int) {
-	var l int
-	_ = l
-	if m.Get != nil {
-		l = m.Get.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.Put != nil {
-		l = m.Put.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.ConditionalPut != nil {
-		l = m.ConditionalPut.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.Delete != nil {
-		l = m.Delete.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.DeleteRange != nil {
-		l = m.DeleteRange.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.Scan != nil {
-		l = m.Scan.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.EndTransaction != nil {
-		l = m.EndTransaction.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *TableResponseUnion) Size() (n int) {
-	var l int
-	_ = l
-	if m.Get != nil {
-		l = m.Get.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.Put != nil {
-		l = m.Put.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.ConditionalPut != nil {
-		l = m.ConditionalPut.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.Delete != nil {
-		l = m.Delete.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.DeleteRange != nil {
-		l = m.DeleteRange.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.Scan != nil {
-		l = m.Scan.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.EndTransaction != nil {
-		l = m.EndTransaction.Size()
-		n += 1 + l + sovStructured(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *BatchTableRequest) Size() (n int) {
 	var l int
 	_ = l
@@ -5130,6 +5056,43 @@ func (m *BatchTableRequest) Size() (n int) {
 	return n
 }
 
+func (m *BatchTableRequest_TableRequestUnion) Size() (n int) {
+	var l int
+	_ = l
+	if m.Get != nil {
+		l = m.Get.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.Put != nil {
+		l = m.Put.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.ConditionalPut != nil {
+		l = m.ConditionalPut.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.Delete != nil {
+		l = m.Delete.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.DeleteRange != nil {
+		l = m.DeleteRange.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.Scan != nil {
+		l = m.Scan.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.EndTransaction != nil {
+		l = m.EndTransaction.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *BatchTableResponse) Size() (n int) {
 	var l int
 	_ = l
@@ -5140,6 +5103,43 @@ func (m *BatchTableResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovStructured(uint64(l))
 		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *BatchTableResponse_TableResponseUnion) Size() (n int) {
+	var l int
+	_ = l
+	if m.Get != nil {
+		l = m.Get.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.Put != nil {
+		l = m.Put.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.ConditionalPut != nil {
+		l = m.ConditionalPut.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.Delete != nil {
+		l = m.Delete.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.DeleteRange != nil {
+		l = m.DeleteRange.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.Scan != nil {
+		l = m.Scan.Size()
+		n += 1 + l + sovStructured(uint64(l))
+	}
+	if m.EndTransaction != nil {
+		l = m.EndTransaction.Size()
+		n += 1 + l + sovStructured(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -6306,188 +6306,6 @@ func (m *ScanTableResponse) MarshalTo(data []byte) (n int, err error) {
 	return i, nil
 }
 
-func (m *TableRequestUnion) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *TableRequestUnion) MarshalTo(data []byte) (n int, err error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Get != nil {
-		data[i] = 0x12
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Get.Size()))
-		n41, err := m.Get.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n41
-	}
-	if m.Put != nil {
-		data[i] = 0x1a
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Put.Size()))
-		n42, err := m.Put.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n42
-	}
-	if m.ConditionalPut != nil {
-		data[i] = 0x22
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.ConditionalPut.Size()))
-		n43, err := m.ConditionalPut.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n43
-	}
-	if m.Delete != nil {
-		data[i] = 0x32
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Delete.Size()))
-		n44, err := m.Delete.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n44
-	}
-	if m.DeleteRange != nil {
-		data[i] = 0x3a
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.DeleteRange.Size()))
-		n45, err := m.DeleteRange.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n45
-	}
-	if m.Scan != nil {
-		data[i] = 0x42
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Scan.Size()))
-		n46, err := m.Scan.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n46
-	}
-	if m.EndTransaction != nil {
-		data[i] = 0x4a
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.EndTransaction.Size()))
-		n47, err := m.EndTransaction.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n47
-	}
-	if m.XXX_unrecognized != nil {
-		i += copy(data[i:], m.XXX_unrecognized)
-	}
-	return i, nil
-}
-
-func (m *TableResponseUnion) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *TableResponseUnion) MarshalTo(data []byte) (n int, err error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Get != nil {
-		data[i] = 0x12
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Get.Size()))
-		n48, err := m.Get.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n48
-	}
-	if m.Put != nil {
-		data[i] = 0x1a
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Put.Size()))
-		n49, err := m.Put.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n49
-	}
-	if m.ConditionalPut != nil {
-		data[i] = 0x22
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.ConditionalPut.Size()))
-		n50, err := m.ConditionalPut.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n50
-	}
-	if m.Delete != nil {
-		data[i] = 0x32
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Delete.Size()))
-		n51, err := m.Delete.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n51
-	}
-	if m.DeleteRange != nil {
-		data[i] = 0x3a
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.DeleteRange.Size()))
-		n52, err := m.DeleteRange.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n52
-	}
-	if m.Scan != nil {
-		data[i] = 0x42
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.Scan.Size()))
-		n53, err := m.Scan.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n53
-	}
-	if m.EndTransaction != nil {
-		data[i] = 0x4a
-		i++
-		i = encodeVarintStructured(data, i, uint64(m.EndTransaction.Size()))
-		n54, err := m.EndTransaction.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n54
-	}
-	if m.XXX_unrecognized != nil {
-		i += copy(data[i:], m.XXX_unrecognized)
-	}
-	return i, nil
-}
-
 func (m *BatchTableRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
@@ -6506,11 +6324,11 @@ func (m *BatchTableRequest) MarshalTo(data []byte) (n int, err error) {
 	data[i] = 0xa
 	i++
 	i = encodeVarintStructured(data, i, uint64(m.TableRequestHeader.Size()))
-	n55, err := m.TableRequestHeader.MarshalTo(data[i:])
+	n41, err := m.TableRequestHeader.MarshalTo(data[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n55
+	i += n41
 	if len(m.Requests) > 0 {
 		for _, msg := range m.Requests {
 			data[i] = 0x12
@@ -6522,6 +6340,97 @@ func (m *BatchTableRequest) MarshalTo(data []byte) (n int, err error) {
 			}
 			i += n
 		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(data[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *BatchTableRequest_TableRequestUnion) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *BatchTableRequest_TableRequestUnion) MarshalTo(data []byte) (n int, err error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Get != nil {
+		data[i] = 0x12
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Get.Size()))
+		n42, err := m.Get.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n42
+	}
+	if m.Put != nil {
+		data[i] = 0x1a
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Put.Size()))
+		n43, err := m.Put.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n43
+	}
+	if m.ConditionalPut != nil {
+		data[i] = 0x22
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.ConditionalPut.Size()))
+		n44, err := m.ConditionalPut.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n44
+	}
+	if m.Delete != nil {
+		data[i] = 0x32
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Delete.Size()))
+		n45, err := m.Delete.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n45
+	}
+	if m.DeleteRange != nil {
+		data[i] = 0x3a
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.DeleteRange.Size()))
+		n46, err := m.DeleteRange.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n46
+	}
+	if m.Scan != nil {
+		data[i] = 0x42
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Scan.Size()))
+		n47, err := m.Scan.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n47
+	}
+	if m.EndTransaction != nil {
+		data[i] = 0x4a
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.EndTransaction.Size()))
+		n48, err := m.EndTransaction.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n48
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(data[i:], m.XXX_unrecognized)
@@ -6547,11 +6456,11 @@ func (m *BatchTableResponse) MarshalTo(data []byte) (n int, err error) {
 	data[i] = 0xa
 	i++
 	i = encodeVarintStructured(data, i, uint64(m.TableResponseHeader.Size()))
-	n56, err := m.TableResponseHeader.MarshalTo(data[i:])
+	n49, err := m.TableResponseHeader.MarshalTo(data[i:])
 	if err != nil {
 		return 0, err
 	}
-	i += n56
+	i += n49
 	if len(m.Responses) > 0 {
 		for _, msg := range m.Responses {
 			data[i] = 0x12
@@ -6563,6 +6472,97 @@ func (m *BatchTableResponse) MarshalTo(data []byte) (n int, err error) {
 			}
 			i += n
 		}
+	}
+	if m.XXX_unrecognized != nil {
+		i += copy(data[i:], m.XXX_unrecognized)
+	}
+	return i, nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *BatchTableResponse_TableResponseUnion) MarshalTo(data []byte) (n int, err error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if m.Get != nil {
+		data[i] = 0x12
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Get.Size()))
+		n50, err := m.Get.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n50
+	}
+	if m.Put != nil {
+		data[i] = 0x1a
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Put.Size()))
+		n51, err := m.Put.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n51
+	}
+	if m.ConditionalPut != nil {
+		data[i] = 0x22
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.ConditionalPut.Size()))
+		n52, err := m.ConditionalPut.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n52
+	}
+	if m.Delete != nil {
+		data[i] = 0x32
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Delete.Size()))
+		n53, err := m.Delete.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n53
+	}
+	if m.DeleteRange != nil {
+		data[i] = 0x3a
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.DeleteRange.Size()))
+		n54, err := m.DeleteRange.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n54
+	}
+	if m.Scan != nil {
+		data[i] = 0x42
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.Scan.Size()))
+		n55, err := m.Scan.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n55
+	}
+	if m.EndTransaction != nil {
+		data[i] = 0x4a
+		i++
+		i = encodeVarintStructured(data, i, uint64(m.EndTransaction.Size()))
+		n56, err := m.EndTransaction.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n56
 	}
 	if m.XXX_unrecognized != nil {
 		i += copy(data[i:], m.XXX_unrecognized)
